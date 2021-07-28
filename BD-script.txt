@@ -1,0 +1,291 @@
+drop table IF EXISTS ticket cascade;
+drop table IF EXISTS clubhistory cascade;
+drop table IF EXISTS participation cascade;
+drop table IF EXISTS evaluation cascade;
+drop table IF EXISTS judgeplan cascade;
+drop table IF EXISTS judge cascade;
+drop table IF EXISTS round cascade;
+drop table IF EXISTS fight cascade;
+drop table IF EXISTS zone cascade;
+drop table IF EXISTS enclosure cascade ;
+drop table IF EXISTS championship cascade;
+drop table IF EXISTS club cascade;
+drop table IF EXISTS boxer cascade;
+
+
+CREATE TABLE BOXER(
+    SSN NUMERIC(10, 0),
+    bname VARCHAR(30) NOT NULL,
+    birthyear NUMERIC(4, 0),
+    weight DOUBLE NOT NULL,
+    category VARCHAR(15),
+    CONSTRAINT PK_BOXER PRIMARY KEY (SSN)
+);
+
+CREATE TABLE CLUB(
+	clubID NUMERIC(2, 0),
+	clubname VARCHAR(20) NOT NULL,
+    CONSTRAINT PK_CLUB PRIMARY KEY (clubID)
+);
+
+CREATE TABLE CHAMPIONSHIP(
+    champID CHAR(5),
+    champname VARCHAR(30) NOT NULL,
+    date DATE NOT NULL,
+    CONSTRAINT PK_CHAMP PRIMARY KEY (champID)
+);
+
+CREATE TABLE ENCLOSURE(
+    encID CHAR(3),
+    encname VARCHAR(20) NOT NULL,
+    CONSTRAINT PK_ENC PRIMARY KEY (encID)
+);
+
+CREATE TABLE ZONE(
+    encID CHAR(3),
+    zonename VARCHAR(5) NOT NULL,
+    seats INT NOT NULL,
+    CONSTRAINT PK_ZONE PRIMARY KEY (encID, zonename),
+    CONSTRAINT FK_ZONE_ENC FOREIGN KEY (encID) 
+        REFERENCES ENCLOSURE(encID) 
+);
+
+CREATE TABLE FIGHT(
+    fightID CHAR(8),
+    champID CHAR (5) NOT NULL,
+    phase VARCHAR(16) NOT NULL,
+    b1SSN NUMERIC(10, 0) NOT NULL,
+    b2SSN NUMERIC(10, 0) NOT NULL,
+    wSSN NUMERIC(10, 0) NOT NULL,
+    encID CHAR(3) NOT NULL,
+    CONSTRAINT PK_FIGHT PRIMARY KEY (fightID),
+    CONSTRAINT FK_FIGHT_B1 FOREIGN KEY (b1SSN)
+        REFERENCES BOXER(SSN),
+    CONSTRAINT FK_FIGHT_B2 FOREIGN KEY (b2SSN)
+        REFERENCES BOXER(SSN),
+    CONSTRAINT FK_FIGHT_WIN FOREIGN KEY (wSSN)
+        REFERENCES BOXER(SSN),
+    CONSTRAINT FK_FIGHT_ENC FOREIGN KEY (encID)
+        REFERENCES ENCLOSURE(encID)
+);
+
+CREATE TABLE ROUND(
+    fightID CHAR(8),
+    number INT NOT NULL,
+    duration INT NOT NULL,
+    CONSTRAINT PK_ROUND PRIMARY KEY (fightID, number),
+    CONSTRAINT FK_ROUND_FIGHT FOREIGN KEY (fightID)
+        REFERENCES FIGHT(fightID)
+);
+
+CREATE TABLE JUDGE(
+    SSN NUMERIC(10, 0),
+    jname VARCHAR(30) NOT NULL,
+    CONSTRAINT PK_JUDGE PRIMARY KEY (SSN)
+);
+
+CREATE TABLE JUDGEPLAN(
+    fightID CHAR(8),
+    jSSN NUMERIC(10, 0),
+    type VARCHAR(10),
+    CONSTRAINT PK_JPLAN PRIMARY KEY (fightID, jSSN),
+    CONSTRAINT FK_JPLAN_FIGHT FOREIGN KEY (fightID)
+        REFERENCES FIGHT(fightID),
+    CONSTRAINT FK_JPLAN_JUDGE FOREIGN KEY (jSSN)
+        REFERENCES JUDGE(SSN)
+);
+
+CREATE TABLE EVALUATION(
+    fightID CHAR(8),
+    roundNumber INT,
+    jSSN NUMERIC(10, 0),
+    b1Points INT NOT NULL,
+    b2Points INT NOT NULL,
+    b1Foul VARCHAR(20) NOT NULL,
+    b2Foul VARCHAR(20) NOT NULL,
+    CONSTRAINT PK_EVAL PRIMARY KEY (fightID, roundNumber, jSSN),
+    CONSTRAINT FK_EVAL_ROUND FOREIGN KEY (fightID, roundNumber)
+        REFERENCES ROUND(fightID, number),
+    CONSTRAINT FK_EVAL_JUDGE FOREIGN KEY (jSSN)
+        REFERENCES JUDGE(SSN)
+);
+
+CREATE TABLE PARTICIPATION(
+    champID CHAR(5) NOT NULL,
+    bSSN NUMERIC(10, 0) NOT NULL,
+    CONSTRAINT PK_PART PRIMARY KEY (champID, bSSN),
+    CONSTRAINT FK_PART_CHAMP FOREIGN KEY (champID)
+        REFERENCES CHAMPIONSHIP(champID),
+    CONSTRAINT FK_PART_BOXER FOREIGN KEY (bSSN)
+        REFERENCES BOXER(SSN)
+);
+
+CREATE TABLE CLUBHISTORY(
+    bSSN NUMERIC(10, 0),
+    clubID NUMERIC(2, 0),
+    ivt DATE NOT NULL,
+    fvt DATE,
+    CONSTRAINT PK_CLUBHIST PRIMARY KEY (bSSN, clubID, ivt),
+    CONSTRAINT FK_CLUBHIST_BOXER FOREIGN KEY (bSSN)
+        REFERENCES BOXER(SSN),
+    CONSTRAINT FK_CLUBHIST_CLUB FOREIGN KEY (clubID)
+        REFERENCES CLUB(clubID)
+);
+
+CREATE TABLE TICKET(
+    ticketNum CHAR(9),
+    fightID CHAR(8),
+    encID CHAR(3),
+    zonename VARCHAR(5),
+    price INT NOT NULL,
+    CONSTRAINT PK_TICKET PRIMARY KEY (ticketNum),
+    CONSTRAINT FK_TICKET_FIGHT FOREIGN KEY (fightID)
+        REFERENCES FIGHT(fightID),
+    CONSTRAINT FK_TICKET_ZONE FOREIGN KEY (encID, zonename)
+        REFERENCES ZONE(encID, zonename)
+);
+
+INSERT INTO boxer VALUES ('9097602486', 'Johny Cage', 1990, 85.2, 'amateur');
+INSERT INTO boxer VALUES ('1085243457', 'Hanso Hasashi', 1988, 82.3, 'professional');
+INSERT INTO boxer VALUES ('5548945003', 'Kuai Liang', 1995, 81.8, 'professional');
+INSERT INTO boxer VALUES ('4999800364', 'Sonya Blade', 1993, 62.6, 'amateur');
+INSERT INTO boxer VALUES ('8996020130', 'Jaxon Briggs', 1991, 99.7, 'amateur');
+
+
+INSERT INTO club VALUES ('12', 'Coruna');
+INSERT INTO club VALUES ('59', 'Pontevedra');
+INSERT INTO club VALUES ('08', 'Ourense');
+
+
+INSERT INTO championship VALUES ('31L5R', 'Galicia Boxing Special', '2018-05-08');
+INSERT INTO championship VALUES ('QV65U', 'The Best Boxer of Galicia', '2010-04-26');
+
+
+INSERT INTO enclosure VALUES ('SGC', 'Synergym Coruna');
+INSERT INTO enclosure VALUES ('BAP', 'Box-arena Pontevedra');
+
+
+INSERT INTO zone VALUES ('SGC', 'north', 560);
+INSERT INTO zone VALUES ('SGC', 'east', 560);
+INSERT INTO zone VALUES ('SGC', 'south', 450);
+INSERT INTO zone VALUES ('SGC', 'west', 450);
+INSERT INTO zone VALUES ('BAP', 'north', 250);
+INSERT INTO zone VALUES ('BAP', 'east', 250);
+INSERT INTO zone VALUES ('BAP', 'south', 250);
+INSERT INTO zone VALUES ('BAP', 'west', 250);
+
+
+INSERT INTO fight VALUES('4F8N49W0', '31L5R', 'qualifications', '4999800364', '8996020130', '4999800364', 'SGC');
+INSERT INTO fight VALUES('2TT6FJFQ', '31L5R', 'qualifications', '9097602486', '5548945003', '5548945003', 'SGC');
+INSERT INTO fight VALUES('8J6GG629', '31L5R', 'quarter-finals', '5548945003', '4999800364', '5548945003', 'BAP');
+INSERT INTO fight VALUES('6Q0DF591', 'QV65U', 'semi-finals', '1085243457', '9097602486', '1085243457', 'SGC');
+INSERT INTO fight VALUES('D6554FDE', 'QV65U', 'finals', '1085243457', '5548945003', '1085243457', 'BAP');
+
+
+INSERT INTO round VALUES('4F8N49W0', 1, 84);
+INSERT INTO round VALUES('4F8N49W0', 2, 123);
+INSERT INTO round VALUES('2TT6FJFQ', 1, 44);
+INSERT INTO round VALUES('2TT6FJFQ', 2, 122);
+INSERT INTO round VALUES('8J6GG629', 1, 165);
+INSERT INTO round VALUES('8J6GG629', 2, 170);
+INSERT INTO round VALUES('6Q0DF591', 1, 177);
+INSERT INTO round VALUES('6Q0DF591', 2, 95);
+INSERT INTO round VALUES('D6554FDE', 1, 130);
+INSERT INTO round VALUES('D6554FDE', 2, 166);
+INSERT INTO round VALUES('D6554FDE', 3, 179);
+
+
+INSERT INTO judge VALUES('3616315348', 'Shang Tsung');
+INSERT INTO judge VALUES('9998453132', 'Shao Kahn');
+INSERT INTO judge VALUES('1431546424', 'Kronika');
+INSERT INTO judge VALUES('4479481310', 'Raiden');
+INSERT INTO judge VALUES('4552855000', 'Fujin');
+
+
+INSERT INTO judgeplan VALUES('4F8N49W0', '3616315348', 'regular');
+INSERT INTO judgeplan VALUES('4F8N49W0', '4479481310', 'regular');
+INSERT INTO judgeplan VALUES('4F8N49W0', '9998453132', 'regular');
+INSERT INTO judgeplan VALUES('4F8N49W0', '1431546424', 'substitute');
+INSERT INTO judgeplan VALUES('2TT6FJFQ', '4552855000','regular');
+INSERT INTO judgeplan VALUES('2TT6FJFQ', '9998453132','regular');
+INSERT INTO judgeplan VALUES('2TT6FJFQ', '4479481310','regular');
+INSERT INTO judgeplan VALUES('2TT6FJFQ', '1431546424', 'substitute');
+INSERT INTO judgeplan VALUES('8J6GG629', '1431546424', 'regular');
+INSERT INTO judgeplan VALUES('8J6GG629', '3616315348', 'regular');
+INSERT INTO judgeplan VALUES('8J6GG629', '4552855000', 'regular');
+INSERT INTO judgeplan VALUES('8J6GG629', '4479481310', 'substitute');
+INSERT INTO judgeplan VALUES('6Q0DF591', '4552855000', 'regular');
+INSERT INTO judgeplan VALUES('6Q0DF591', '9998453132', 'regular');
+INSERT INTO judgeplan VALUES('6Q0DF591', '1431546424', 'regular');
+INSERT INTO judgeplan VALUES('6Q0DF591', '3616315348', 'substitute');
+INSERT INTO judgeplan VALUES('D6554FDE', '4552855000', 'regular');
+INSERT INTO judgeplan VALUES('D6554FDE', '1431546424', 'regular');
+INSERT INTO judgeplan VALUES('D6554FDE', '4479481310', 'regular');
+INSERT INTO judgeplan VALUES('D6554FDE', '9998453132', 'substitute');
+
+
+INSERT INTO evaluation VALUES('4F8N49W0', 1, '3616315348', 10, 9, 'none', 'none');
+INSERT INTO evaluation VALUES('4F8N49W0', 1, '4479481310', 10, 9, 'none', 'none');
+INSERT INTO evaluation VALUES('4F8N49W0', 1, '9998453132', 10, 9, 'none', 'none');
+INSERT INTO evaluation VALUES('4F8N49W0', 2, '3616315348', 10, 8, 'warning', 'none');
+INSERT INTO evaluation VALUES('4F8N49W0', 2, '4479481310', 10, 8, 'warning', 'none');
+INSERT INTO evaluation VALUES('4F8N49W0', 2, '9998453132', 10, 8, 'warning', 'none');
+
+INSERT INTO evaluation VALUES('2TT6FJFQ', 1, '4552855000', 9, 10, 'none', 'none');
+INSERT INTO evaluation VALUES('2TT6FJFQ', 1, '4479481310', 9, 10, 'none', 'none');
+INSERT INTO evaluation VALUES('2TT6FJFQ', 1, '1431546424', 9, 10, 'none', 'none');
+INSERT INTO evaluation VALUES('2TT6FJFQ', 2, '4552855000', 8, 10, 'none', 'none');
+INSERT INTO evaluation VALUES('2TT6FJFQ', 2, '4479481310', 8, 10, 'none', 'none');
+INSERT INTO evaluation VALUES('2TT6FJFQ', 2, '1431546424', 8, 10, 'none', 'none');
+
+INSERT INTO evaluation VALUES('8J6GG629', 1, '4479481310', 10, 10, 'none', 'none');
+INSERT INTO evaluation VALUES('8J6GG629', 1, '3616315348', 10, 10, 'none', 'none');
+INSERT INTO evaluation VALUES('8J6GG629', 1, '4552855000', 10, 10, 'none', 'none');
+INSERT INTO evaluation VALUES('8J6GG629', 2, '4479481310', 10, 9, 'none', 'none');
+INSERT INTO evaluation VALUES('8J6GG629', 2, '3616315348', 10, 9, 'none', 'none');
+INSERT INTO evaluation VALUES('8J6GG629', 2, '4552855000', 10, 9, 'none', 'none');
+
+INSERT INTO evaluation VALUES('6Q0DF591', 1, '3616315348', 10, 8, 'none', 'warning');
+INSERT INTO evaluation VALUES('6Q0DF591', 1, '9998453132', 10, 8, 'none', 'warning');
+INSERT INTO evaluation VALUES('6Q0DF591', 1, '1431546424', 10, 8, 'none', 'warning');
+INSERT INTO evaluation VALUES('6Q0DF591', 2, '3616315348', 10, 9, 'none', 'kicking');
+INSERT INTO evaluation VALUES('6Q0DF591', 2, '9998453132', 10, 9, 'none', 'kicking');
+INSERT INTO evaluation VALUES('6Q0DF591', 2, '1431546424', 10, 9, 'none', 'kicking');
+
+INSERT INTO evaluation VALUES('D6554FDE', 1, '4552855000', 10, 9, 'warning', 'none');
+INSERT INTO evaluation VALUES('D6554FDE', 1, '1431546424', 10, 9, 'warning', 'none');
+INSERT INTO evaluation VALUES('D6554FDE', 1, '4479481310', 10, 9, 'warning', 'none');
+INSERT INTO evaluation VALUES('D6554FDE', 2, '4552855000', 8, 10, 'none', 'none');
+INSERT INTO evaluation VALUES('D6554FDE', 2, '1431546424', 8, 10, 'none', 'none');
+INSERT INTO evaluation VALUES('D6554FDE', 2, '4479481310', 8, 10, 'none', 'none');
+INSERT INTO evaluation VALUES('D6554FDE', 3, '4552855000', 10, 8, 'none', 'warning');
+INSERT INTO evaluation VALUES('D6554FDE', 3, '1431546424', 10, 8, 'none', 'warning');
+INSERT INTO evaluation VALUES('D6554FDE', 3, '4479481310', 10, 8, 'none', 'warning');
+
+
+INSERT INTO participation VALUES('31L5R', '4999800364');
+INSERT INTO participation VALUES('31L5R', '8996020130');
+INSERT INTO participation VALUES('31L5R', '9097602486');
+INSERT INTO participation VALUES('31L5R', '5548945003');
+INSERT INTO participation VALUES('QV65U', '1085243457');
+INSERT INTO participation VALUES('QV65U', '9097602486');
+INSERT INTO participation VALUES('QV65U', '5548945003');
+
+
+INSERT INTO clubhistory VALUES('1085243457', '12', '2005-01-01', NULL);
+INSERT INTO clubhistory VALUES('4999800364', '12', '2006-01-01', NULL);
+INSERT INTO clubhistory VALUES('5548945003', '59', '2005-01-01', '2014-12-31');
+INSERT INTO clubhistory VALUES('8996020130', '59', '2004-01-01', NULL);
+INSERT INTO clubhistory VALUES('9097602486', '08', '2000-01-01', NULL);
+INSERT INTO clubhistory VALUES('5548945003', '08', '2015-01-01', NULL);
+
+
+INSERT INTO ticket VALUES('123456A78', '4F8N49W0', 'SGC', 'north', 20);
+INSERT INTO ticket VALUES('123456A79', '2TT6FJFQ', 'SGC', 'south', 25);
+INSERT INTO ticket VALUES('123456A82', '8J6GG629', 'BAP', 'west', 50);
+INSERT INTO ticket VALUES('123456A87', '8J6GG629', 'BAP', 'west', 50);
+INSERT INTO ticket VALUES('123456B11', '6Q0DF591', 'SGC', 'east', 45);
+INSERT INTO ticket VALUES('123456B24', '6Q0DF591', 'SGC', 'north', 66);
+INSERT INTO ticket VALUES('123456B65', 'D6554FDE', 'BAP', 'south', 115);
+INSERT INTO ticket VALUES('123456B08', 'D6554FDE', 'BAP', 'east', 100);
+INSERT INTO ticket VALUES('123456B09', 'D6554FDE', 'BAP', 'east', 100);
