@@ -20,13 +20,21 @@ The Galician Boxing Federation needs a database to manage clubs championships. T
 5. We also want to use the database to plan ticket sales for the championships. Each enclosure (e.g., sport pavilions) is divided into zones, each one with a maximum number of associated locations. The price of the ticket will depend on the fight and its location within the enclosure.
 
 Questions to answer about the domain:
+
 a) We want to know the current composition of the federated clubs in Galicia.
+
 b) We want to know how many victories and defeats had the boxer A along his/her career.
+
 c) For the championship X, we want to know the clubs that participated, and their composition during the championship.
+
 d) For the championship X, we want to know the fights that were held. For each fight, we have to obtain the participating boxers, the winner, and the venue (enclosure) where it took place.
+
 e) For the fight C between boxers A and B, we want to know the amount of rounds, the duration of each round, the points obtained by each fighter and the fouls committed by each fighter.
+
 f) For the fight C between boxers A and B, we want to know the judges who were planned as regulars and substitutes, and from these, we want to know who were the ones who finally covered the fight.
+
 g) For each participating judge of the fight C between boxers A and B, we want to know how many points were given to each fighter in each round.
+
 h) For the fight C between boxers A and B, we want to know how many tickets were available in each zone of the venue where it took place, and at what price. We also want to know how many tickets were sold in each zone.
 
 Step 2: Conceptual design – E/R diagram
